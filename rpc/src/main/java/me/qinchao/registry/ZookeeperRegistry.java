@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -28,7 +29,7 @@ public class ZookeeperRegistry implements Registry {
 
     public ZookeeperRegistry() {
         ADDRESS = env.getProperty("registry.address");
-        if (org.apache.commons.lang3.StringUtils.isBlank(ADDRESS)) {
+        if (StringUtils.isEmpty(ADDRESS)) {
             throw new RuntimeException("registry address is blank");
         }
     }
