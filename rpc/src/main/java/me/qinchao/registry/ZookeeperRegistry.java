@@ -5,6 +5,7 @@ import org.apache.zookeeper.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -16,33 +17,24 @@ import java.util.concurrent.CountDownLatch;
 /**
  * Created by SULVTO on 16-3-29.
  */
-@Component
 public class ZookeeperRegistry implements Registry {
     private static final Logger LOGGER = LoggerFactory.getLogger(ZookeeperRegistry.class);
+    private String registryAddrss;
 
     private final String ROOT = "/root";
     private ZooKeeper zkClient;
     private boolean isInit = false;
-    private final String ADDRESS;
     private CountDownLatch latch = new CountDownLatch(1);
 
-
-    public ZookeeperRegistry() {
-        ADDRESS = env.getProperty("registry.address");
-        if (StringUtils.isEmpty(ADDRESS)) {
-            throw new RuntimeException("registry address is blank");
-        }
+    public ZookeeperRegistry(String registryAddrss) {
+        this.registryAddrss = registryAddrss;
     }
-
-    @Autowired
-    private org.springframework.core.env.Environment env;
-
 
     private void init() {
         if (zkClient == null) {
 
             try {
-                zkClient = new ZooKeeper(ADDRESS,
+                zkClient = new ZooKeeper(registryAddrss,
                         500000, new Watcher() {
                     public void process(WatchedEvent event) {
                         if (event.getState() == Event.KeeperState.SyncConnected) {
@@ -63,9 +55,7 @@ public class ZookeeperRegistry implements Registry {
     }
 
     private void createNode(String path, CreateMode mode) {
-        if (!isInit) {
-            init();
-        }
+
         try {
             if (zkClient.exists(path, true) == null) {
                 zkClient.create(path, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, mode);
@@ -85,12 +75,18 @@ public class ZookeeperRegistry implements Registry {
 
     @Override
     public void register(RegistryConfig config) {
+        if (!isInit) {
+            init();
+        }
         createRegistryNode(config.getHost() + ":" + config.getPort(), config.getServiceName());
 
     }
 
     @Override
     public List<RegistryConfig> subscribe(String serviceName) {
+        if (!isInit) {
+            init();
+        }
         List<RegistryConfig> serviceList = new ArrayList<>();
 
         try {

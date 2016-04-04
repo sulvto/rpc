@@ -14,7 +14,6 @@ import java.util.List;
  * Created by SULVTO on 16-4-3.
  */
 public class ServiceHandler {
-    private Registry registry = RegistryFactory.getRegistry();
     private Protocol protocol = new DefaultProtocol();
 
     private ProtocolConfig protocolConfig;
@@ -31,13 +30,17 @@ public class ServiceHandler {
 
     void export(Object service) {
         protocol.export(service, protocolConfig);
-        registry.register(registryConfig);
+        RegistryFactory.getRegistry(registryConfig.getAddress()).register(registryConfig);
     }
 
     Object refer() {
-        List<RegistryConfig> subscribe = registry.subscribe(registryConfig.getServiceName());
+        List<RegistryConfig> subscribe = RegistryFactory.getRegistry(registryConfig.getAddress()).subscribe(registryConfig.getServiceName());
+        if (subscribe.size() < 1) {
+            return null;
+        }
+
         RegistryConfig registryConfig = subscribe.get(0);
-        return protocol.refer(registryConfig.getReferenceClass(), registryConfig);
+        return protocol.refer(this.registryConfig.getReferenceClass(), registryConfig);
     }
 
 
@@ -49,13 +52,6 @@ public class ServiceHandler {
         this.protocolConfig = protocolConfig;
     }
 
-    public Registry getRegistry() {
-        return registry;
-    }
-
-    public void setRegistry(Registry registry) {
-        this.registry = registry;
-    }
 
     public Protocol getProtocol() {
         return protocol;

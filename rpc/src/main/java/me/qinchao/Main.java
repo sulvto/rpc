@@ -1,6 +1,5 @@
 package me.qinchao;
 
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 
@@ -12,7 +11,6 @@ import java.util.Date;
  */
 @ComponentScan
 public class Main {
-    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(Main.class);
 
     public static void run() {
         AnnotationConfigApplicationContext context =
@@ -22,7 +20,7 @@ public class Main {
         System.out.println(new SimpleDateFormat("[yyyy-MM-dd HH:mm:ss]").format(new Date()) + " Main application started!");
     }
 
-    public static void main(String[] args) {
+    public static void main() {
         run();
     }
 }

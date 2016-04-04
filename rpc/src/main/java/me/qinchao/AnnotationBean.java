@@ -23,12 +23,14 @@ import java.rmi.RemoteException;
 @Component
 public class AnnotationBean implements BeanPostProcessor, ApplicationContextAware {
 
-
+    private String registryAddrss;
     private ApplicationContext applicationContext;
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
+        registryAddrss = applicationContext.getEnvironment().getProperty("registry.address");
+
     }
 
     @Override
@@ -75,15 +77,14 @@ public class AnnotationBean implements BeanPostProcessor, ApplicationContextAwar
     }
 
     private void export(RpcService service, Object serviceObject) {
-        ServiceHandler serviceHandler = new ServiceHandler(new ProtocolConfig(service.host(), service.port()), new RegistryConfig(service.host(), service.port(), serviceObject.getClass().getName()));
+        ServiceHandler serviceHandler = new ServiceHandler(new ProtocolConfig(service.host(), service.port()), new RegistryConfig(registryAddrss,service.host(), service.port(), serviceObject.getClass().getInterfaces()[0].getName()));
         serviceHandler.export(serviceObject);
     }
 
     private Object refer(Class<?> referenceClass) throws RemoteException, NotBoundException, MalformedURLException {
         ServiceHandler serviceHandler = new ServiceHandler();
-        RegistryConfig registryConfig = new RegistryConfig(referenceClass.getName());
+        RegistryConfig registryConfig = new RegistryConfig(registryAddrss, referenceClass.getName());
         registryConfig.setReferenceClass(referenceClass);
-
         serviceHandler.setRegistryConfig(registryConfig);
         return serviceHandler.refer();
     }

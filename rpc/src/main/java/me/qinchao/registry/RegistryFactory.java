@@ -10,13 +10,13 @@ public class RegistryFactory {
 
     }
 
-    private static Registry createRegistry() {
-        return new ZookeeperRegistry();
+    private static Registry createRegistry(String registryAddrss) {
+        return new ZookeeperRegistry(registryAddrss);
     }
 
-    public static Registry getRegistry() {
+    public static Registry getRegistry(String registryAddrss) {
         if (registry == null) {
-            registry = createRegistry();
+            registry = createRegistry(registryAddrss);
         }
         return registry;
     }

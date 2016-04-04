@@ -20,45 +20,50 @@ public class DefaultProtocol implements Protocol {
 
     private void doExport(Object service, int port) throws IOException {
         ServerSocket server = new ServerSocket(port);
-        for (; ; ) {
-            try {
-                Socket socket = server.accept();
-                new Thread(() -> {
-                    try {
+        Runnable runnable = () -> {
+
+            for (; ; ) {
+                try {
+                    Socket socket = server.accept();
+                    new Thread(() -> {
                         try {
-                            ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
                             try {
-                                String methodName = objectInputStream.readUTF();
-                                Class<?>[] parameterTypes = (Class<?>[]) objectInputStream.readObject();
-                                Object[] arguments = (Object[]) objectInputStream.readObject();
-                                ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+                                ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
                                 try {
-                                    Method method = service.getClass().getMethod(methodName, parameterTypes);
-                                    Object result = method.invoke(service, arguments);
-                                    objectOutputStream.writeObject(result);
+                                    String methodName = objectInputStream.readUTF();
+                                    Class<?>[] parameterTypes = (Class<?>[]) objectInputStream.readObject();
+                                    Object[] arguments = (Object[]) objectInputStream.readObject();
+                                    ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+                                    try {
+                                        Method method = service.getClass().getMethod(methodName, parameterTypes);
+                                        Object result = method.invoke(service, arguments);
+                                        objectOutputStream.writeObject(result);
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    } finally {
+                                        objectOutputStream.close();
+                                    }
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                 } finally {
-                                    objectOutputStream.close();
+                                    objectInputStream.close();
                                 }
-                            } catch (Exception e) {
+                            } catch (IOException e) {
                                 e.printStackTrace();
                             } finally {
-                                objectInputStream.close();
+                                socket.close();
                             }
                         } catch (IOException e) {
                             e.printStackTrace();
-                        } finally {
-                            socket.close();
                         }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }).start();
-            } catch (IOException e) {
-                e.printStackTrace();
+                    }).start();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
-        }
+
+        };
+        new Thread(runnable).start();
     }
 
     @Override
