@@ -32,6 +32,8 @@ public class DemoAction {
     @PostConstruct
     public void start() throws Exception {
         String qqqq = helloService.hello("qqqq");
+        System.out.println("================================");
         System.out.println("helloService.hello ===> " + qqqq);
+        System.out.println("================================");
     }
 }

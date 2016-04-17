@@ -1,11 +1,9 @@
 package me.qinchao;
 
 import me.qinchao.api.ProtocolConfig;
-import me.qinchao.api.ReferenceConfig;
 import me.qinchao.api.RegistryConfig;
 import me.qinchao.protocol.Protocol;
-import me.qinchao.protocol.impl.DefaultProtocol;
-import me.qinchao.registry.Registry;
+import me.qinchao.protocol.impl.NettyProtocol;
 import me.qinchao.registry.RegistryFactory;
 
 import java.util.List;
@@ -14,7 +12,7 @@ import java.util.List;
  * Created by SULVTO on 16-4-3.
  */
 public class ServiceHandler {
-    private Protocol protocol = new DefaultProtocol();
+    private Protocol protocol = new NettyProtocol();
 
     private ProtocolConfig protocolConfig;
     private RegistryConfig registryConfig;

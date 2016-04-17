@@ -1,10 +1,13 @@
 package me.qinchao.api;
 
+import java.io.Serializable;
+
 /**
  * Created by SULVTO on 16-4-15.
  */
-public class RpcResponse {
+public class RpcResponse implements Serializable {
 
+    private static final long serialVersionUID = 5650327503627569491L;
     private Throwable error;
     private Object result;
 

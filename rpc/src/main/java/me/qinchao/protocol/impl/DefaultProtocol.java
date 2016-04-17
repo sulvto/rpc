@@ -67,9 +67,9 @@ public class DefaultProtocol implements Protocol {
     }
 
     @Override
-    public void export(Object serviceObject, ProtocolConfig protocolConfig) {
+    public void export(Object serviceObject, AbstractConfig config) {
         try {
-            doExport(serviceObject, protocolConfig.getPort());
+            doExport(serviceObject, config.getPort());
         } catch (IOException e) {
             e.printStackTrace();
         }
