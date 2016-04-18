@@ -22,7 +22,7 @@ public class NettyReferTest {
         rpcRequest.setParameterTypes(methods[0].getParameterTypes());
         rpcRequest.setMethodName("hello");
         rpcRequest.setArguments(new String[]{"haha"});
-        RpcResponse refer = new NettyRefer("127.0.0.1", 9999).refer(rpcRequest);
-        Assert.assertNotNull(refer.getResult());
+        Object result = new NettyRefer("127.0.0.1", 9999).refer(rpcRequest);
+        Assert.assertNotNull(result);
     }
 }

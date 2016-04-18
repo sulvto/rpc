@@ -11,7 +11,10 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import me.qinchao.api.*;
 
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.AbstractQueuedSynchronizer;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * Created by SULVTO on 16-4-17.
@@ -20,19 +23,16 @@ public class NettyRefer {
 
     private Channel channel;
 
-    private CountDownLatch responseDone;
-    private volatile boolean isConnect = false;
-    private RPCFuture<RpcResponse> rpcFuture;
+    private ResultFuture<RpcResponse> resultFuture;
     private String host;
     private int port;
 
     public NettyRefer(String host, int port) {
         this.host = host;
         this.port = port;
-        responseDone = new CountDownLatch(1);
     }
 
-    private void doConnect() throws InterruptedException {
+    private void doConnect(Consumer<ChannelHandlerContext> onChannelActive) throws InterruptedException {
         EventLoopGroup bossGroup = new NioEventLoopGroup();
         try {
             Bootstrap bootstrap = new Bootstrap();
@@ -46,9 +46,15 @@ public class NettyRefer {
                             pipeline.addLast(new RpcEncoder());
                             pipeline.addLast(new RpcDecoder());
                             pipeline.addLast(new SimpleChannelInboundHandler<RpcResponse>() {
+
+                                @Override
+                                public void channelActive(ChannelHandlerContext ctx) {
+                                    onChannelActive.accept(ctx);
+                                }
+
                                 @Override
                                 protected void messageReceived(ChannelHandlerContext ctx, RpcResponse msg) throws Exception {
-                                    rpcFuture.done(msg);
+                                    resultFuture.done(msg);
                                 }
 
                                 @Override
@@ -61,40 +67,42 @@ public class NettyRefer {
             bootstrap.option(ChannelOption.TCP_NODELAY, true);
 
             ChannelFuture channelFuture = bootstrap.connect(host, port).sync();
-            isConnect = true;
             channel = channelFuture.channel();
+
             channel.closeFuture().sync();
         } finally {
             bossGroup.shutdownGracefully();
         }
     }
 
-    public void connect() {
-        rpcFuture = new RPCFuture();
+    private void connect(Consumer<ChannelHandlerContext> onChannelActive) {
+        resultFuture = new ResultFuture();
         new Thread(() -> {
             try {
-                doConnect();
+                doConnect(onChannelActive);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }).start();
     }
 
-    public RpcResponse refer(RpcRequest rpcRequest) throws InterruptedException {
-        connect();
-        while (!isConnect) {
-            TimeUnit.MILLISECONDS.sleep(100);
-        }
-        channel.writeAndFlush(rpcRequest).sync();
+    public Object refer(RpcRequest rpcRequest) throws Exception {
+        connect(context -> {
+            context.writeAndFlush(rpcRequest);
+        });
 
-        return rpcFuture.get();
+        RpcResponse rpcResponse = resultFuture.get();
+        if (rpcResponse.getException() != null) {
+            throw rpcResponse.getException();
+        }
+        return rpcResponse.getResult();
     }
 
-    public class RPCFuture<T> implements Future {
+    public class ResultFuture<T> implements Future {
         private T result;
         private Sync sync;
 
-        protected RPCFuture() {
+        protected ResultFuture() {
             this.sync = new Sync();
         }
 
@@ -121,7 +129,7 @@ public class NettyRefer {
 
         @Override
         public T get() {
-            sync.tryAcquire(-1);
+            sync.acquire(-1);
             return result;
         }
 
