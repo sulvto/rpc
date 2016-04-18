@@ -8,16 +8,16 @@ import java.io.Serializable;
 public class RpcResponse implements Serializable {
 
     private static final long serialVersionUID = 5650327503627569491L;
-    private Throwable error;
+    private Exception exception;
     private Object result;
 
 
-    public Throwable getError() {
-        return error;
+    public Exception getException() {
+        return exception;
     }
 
-    public void setError(Throwable error) {
-        this.error = error;
+    public void setException(Exception exception) {
+        this.exception = exception;
     }
 
     public Object getResult() {

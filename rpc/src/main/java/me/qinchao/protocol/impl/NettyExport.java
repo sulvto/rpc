@@ -18,15 +18,15 @@ import java.util.function.Function;
 /**
  * Created by SULVTO on 16-4-17.
  */
-public class NettyExport{
+public class NettyExport {
     private BiConsumer<ChannelHandlerContext, RpcRequest> onMessageReceived;
 
     public NettyExport(BiConsumer<ChannelHandlerContext, RpcRequest> onMessageReceived) {
         this.onMessageReceived = onMessageReceived;
     }
 
+    public void doStartServer(String host, int port) throws Exception {
 
-    public void startServer(String host, int port) throws InterruptedException {
         EventLoopGroup bossGroup = new NioEventLoopGroup();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {
@@ -40,10 +40,10 @@ public class NettyExport{
                             ChannelPipeline pipeline = socketChannel.pipeline();
                             pipeline.addLast(new RpcDecoder());
                             pipeline.addLast(new RpcEncoder());
-                            pipeline.addLast(new SimpleChannelInboundHandler< RpcRequest>() {
+                            pipeline.addLast(new SimpleChannelInboundHandler<RpcRequest>() {
                                 @Override
                                 protected void messageReceived(ChannelHandlerContext ctx, RpcRequest msg) throws Exception {
-                                    onMessageReceived.accept(ctx,msg);
+                                    onMessageReceived.accept(ctx, msg);
                                 }
 
                                 @Override
@@ -61,6 +61,17 @@ public class NettyExport{
             workerGroup.shutdownGracefully().sync();
             bossGroup.shutdownGracefully().sync();
         }
+    }
+
+
+    public void startServer(String host, int port) {
+        new Thread(() -> {
+            try {
+                doStartServer(host, port);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
     }
 
 }

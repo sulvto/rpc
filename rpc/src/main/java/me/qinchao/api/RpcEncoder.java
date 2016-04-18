@@ -14,8 +14,9 @@ import java.util.List;
 /**
  * Created by SULVTO on 16-4-15.
  */
-public class RpcEncoder extends MessageToByteEncoder<RpcRequest> {
-    protected void encode(ChannelHandlerContext ctx, RpcRequest msg, ByteBuf out) throws Exception {
+public class RpcEncoder extends MessageToByteEncoder{
+    @Override
+    protected void encode(ChannelHandlerContext ctx, Object msg, ByteBuf out) throws Exception {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
         objectOutputStream.writeObject(msg);
@@ -27,6 +28,4 @@ public class RpcEncoder extends MessageToByteEncoder<RpcRequest> {
         out.writeInt(data.length);
         out.writeBytes(data);
     }
-
-
 }

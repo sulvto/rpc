@@ -33,24 +33,10 @@ public class NettyExportTest {
                 Object result = method.invoke(serviceObject, arguments);
 
                 rpcResponse.setResult(result);
-            } catch (Throwable e) {
-                rpcResponse.setError(e);
+            } catch (Exception e) {
+                rpcResponse.setException(e);
             }
-            try {
-                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
-                objectOutputStream.writeObject(rpcResponse);
-
-                objectOutputStream.flush();
-                objectOutputStream.close();
-                byte[] data = byteArrayOutputStream.toByteArray();
-                ByteBuf resp = Unpooled.copiedBuffer(data);
-                channelHandlerContext.writeAndFlush(resp).sync();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            channelHandlerContext.writeAndFlush(rpcResponse).addListener(ChannelFutureListener.CLOSE);
         }).startServer("127.0.0.1", 9999);
     }
 }
