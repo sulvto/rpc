@@ -1,20 +1,21 @@
 package me.qinchao.protocol.impl;
 
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.FutureFallback;
-import com.sun.corba.se.impl.orbutil.concurrent.Sync;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import me.qinchao.api.*;
+import me.qinchao.api.RpcDecoder;
+import me.qinchao.api.RpcEncoder;
+import me.qinchao.api.RpcRequest;
+import me.qinchao.api.RpcResponse;
 
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 /**
  * Created by SULVTO on 16-4-17.
@@ -134,17 +135,18 @@ public class NettyRefer {
         }
 
         @Override
+        @Deprecated
         public Object get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
             throw new UnsupportedOperationException();
         }
     }
 
-    class Sync extends AbstractQueuedSynchronizer {
+    static final class Sync extends AbstractQueuedSynchronizer {
         private final int done = 1;
         private final int pending = 0;
 
         protected boolean tryAcquire(int acquires) {
-            return getState() == done ? true : false;
+            return getState() == done;
         }
 
         protected boolean tryRelease(int releases) {
@@ -157,7 +159,6 @@ public class NettyRefer {
         }
 
         public boolean isDone() {
-            getState();
             return getState() == done;
         }
     }

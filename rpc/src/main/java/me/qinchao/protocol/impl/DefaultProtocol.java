@@ -1,7 +1,6 @@
 package me.qinchao.protocol.impl;
 
 import me.qinchao.api.AbstractConfig;
-import me.qinchao.api.ProtocolConfig;
 import me.qinchao.protocol.Protocol;
 
 import java.io.IOException;
@@ -14,7 +13,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 /**
- * Created by SULVTO on 16-4-3.
+ * Created by SULVTO on 16-3-28.
+ * @deprecated NettyProtocol now
  */
 public class DefaultProtocol implements Protocol {
 

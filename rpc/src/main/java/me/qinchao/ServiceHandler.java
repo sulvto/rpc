@@ -50,7 +50,6 @@ public class ServiceHandler {
         this.protocolConfig = protocolConfig;
     }
 
-
     public Protocol getProtocol() {
         return protocol;
     }
