@@ -9,7 +9,7 @@ import java.util.List;
  */
 public interface Registry {
 
-    void register(RegistryConfig config);
+    void register(String host,int port,String serviceName);
 
     List<RegistryConfig> subscribe(String serviceName);
 }

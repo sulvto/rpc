@@ -15,7 +15,7 @@ public class NettyProtocol implements Protocol {
 
 
     @Override
-    public void export(Object serviceObject, AbstractConfig protocolConfig) {
+    public void export(Object serviceObject, String host, int port) {
 
         new NettyExport((context, rpcRequest) -> {
             RpcResponse rpcResponse = new RpcResponse();
@@ -31,12 +31,12 @@ public class NettyProtocol implements Protocol {
                 rpcResponse.setException(e);
             }
             context.writeAndFlush(rpcResponse).addListener(ChannelFutureListener.CLOSE);
-        }).startServer(protocolConfig.getHost(), protocolConfig.getPort());
+        }).startServer(host, port);
 
     }
 
     @Override
-    public <T> T refer(Class<T> serviceType, AbstractConfig protocolConfig) {
+    public <T> T refer(Class<T> serviceType, String host, int port) {
         return (T) Proxy.newProxyInstance(serviceType.getClassLoader(), new Class<?>[]{serviceType}, new InvocationHandler() {
                     @Override
                     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
@@ -44,7 +44,7 @@ public class NettyProtocol implements Protocol {
                         rpcRequest.setMethodName(method.getName());
                         rpcRequest.setParameterTypes(method.getParameterTypes());
                         rpcRequest.setArguments(args);
-                        return new NettyRefer(protocolConfig.getHost(), protocolConfig.getPort())
+                        return new NettyRefer(host, port)
                                 .refer(rpcRequest);
                     }
                 }

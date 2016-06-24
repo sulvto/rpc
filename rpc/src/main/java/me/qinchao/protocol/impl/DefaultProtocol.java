@@ -1,6 +1,5 @@
 package me.qinchao.protocol.impl;
 
-import me.qinchao.api.AbstractConfig;
 import me.qinchao.protocol.Protocol;
 
 import java.io.IOException;
@@ -14,6 +13,7 @@ import java.net.Socket;
 
 /**
  * Created by SULVTO on 16-3-28.
+ *
  * @deprecated NettyProtocol now
  */
 public class DefaultProtocol implements Protocol {
@@ -67,20 +67,20 @@ public class DefaultProtocol implements Protocol {
     }
 
     @Override
-    public void export(Object serviceObject, AbstractConfig config) {
+    public void export(Object serviceObject, String host, int port) {
         try {
-            doExport(serviceObject, config.getPort());
+            doExport(serviceObject, port);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     @Override
-    public <T> T refer(Class<T> serviceType, AbstractConfig protocolConfig) {
+    public <T> T refer(Class<T> serviceType, String host, int port) {
         return (T) Proxy.newProxyInstance(serviceType.getClassLoader(), new Class<?>[]{serviceType}, new InvocationHandler() {
                     @Override
                     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                        try (Socket socket = new Socket(protocolConfig.getHost(), protocolConfig.getPort())) {
+                        try (Socket socket = new Socket(host, port)) {
                             try (ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream())) {
                                 objectOutputStream.writeUTF(method.getName());
                                 objectOutputStream.writeObject(method.getParameterTypes());

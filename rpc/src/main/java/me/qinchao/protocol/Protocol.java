@@ -15,9 +15,6 @@
  */
 package me.qinchao.protocol;
 
-import me.qinchao.api.AbstractConfig;
-import me.qinchao.api.ProtocolConfig;
-
 /**
  * Protocol.
  */
@@ -26,11 +23,11 @@ public interface Protocol {
     /**
      * 暴露远程服务
      */
-    void export(Object serviceObject, AbstractConfig protocolConfig);
+    void export(Object serviceObject, String host, int port);
 
     /**
      * 引用远程服务
      */
-    <T> T refer(Class<T> type, AbstractConfig protocolConfig);
+    <T> T refer(Class<T> type, String host, int port);
 
 }

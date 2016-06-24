@@ -4,10 +4,6 @@ import me.qinchao.api.RegistryConfig;
 import org.apache.zookeeper.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -19,22 +15,22 @@ import java.util.concurrent.CountDownLatch;
  */
 public class ZookeeperRegistry implements Registry {
     private static final Logger LOGGER = LoggerFactory.getLogger(ZookeeperRegistry.class);
-    private String registryAddrss;
+    private String registryAddress;
 
     private final String ROOT = "/root";
     private ZooKeeper zkClient;
-    private boolean isInit = false;
+    private volatile boolean isInit = false;
     private CountDownLatch latch = new CountDownLatch(1);
 
-    public ZookeeperRegistry(String registryAddrss) {
-        this.registryAddrss = registryAddrss;
+    public ZookeeperRegistry(String registryAddress) {
+        this.registryAddress = registryAddress;
     }
 
     private void init() {
         if (zkClient == null) {
 
             try {
-                zkClient = new ZooKeeper(registryAddrss,
+                zkClient = new ZooKeeper(registryAddress,
                         500000, new Watcher() {
                     public void process(WatchedEvent event) {
                         if (event.getState() == Event.KeeperState.SyncConnected) {
@@ -74,12 +70,11 @@ public class ZookeeperRegistry implements Registry {
 
 
     @Override
-    public void register(RegistryConfig config) {
+    public void register(String host, int port, String serviceName) {
         if (!isInit) {
             init();
         }
-        createRegistryNode(config.getHost() + ":" + config.getPort(), config.getServiceName());
-
+        createRegistryNode(host + ":" + port, serviceName);
     }
 
     @Override

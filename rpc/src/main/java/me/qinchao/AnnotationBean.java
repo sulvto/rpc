@@ -2,7 +2,6 @@ package me.qinchao;
 
 import me.qinchao.annotation.Reference;
 import me.qinchao.annotation.RpcService;
-import me.qinchao.api.ProtocolConfig;
 import me.qinchao.api.RegistryConfig;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
@@ -30,7 +29,6 @@ public class AnnotationBean implements BeanPostProcessor, ApplicationContextAwar
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
         registryAddrss = applicationContext.getEnvironment().getProperty("registry.address");
-
     }
 
     @Override
@@ -77,16 +75,14 @@ public class AnnotationBean implements BeanPostProcessor, ApplicationContextAwar
     }
 
     private void export(RpcService service, Object serviceObject) {
-        ServiceHandler serviceHandler = new ServiceHandler(new ProtocolConfig(service.host(), service.port()), new RegistryConfig(registryAddrss,service.host(), service.port(), serviceObject.getClass().getInterfaces()[0].getName()));
-        serviceHandler.export(serviceObject);
+        String serviceName = serviceObject.getClass().getInterfaces()[0].getName();
+        ServiceHandler serviceHandler = new ServiceHandler(registryAddrss);
+        serviceHandler.export(serviceObject, service.host(), service.port(), serviceName);
     }
 
     private Object refer(Class<?> referenceClass) throws RemoteException, NotBoundException, MalformedURLException {
-        ServiceHandler serviceHandler = new ServiceHandler();
-        RegistryConfig registryConfig = new RegistryConfig(registryAddrss, referenceClass.getName());
-        registryConfig.setReferenceClass(referenceClass);
-        serviceHandler.setRegistryConfig(registryConfig);
-        return serviceHandler.refer();
+        ServiceHandler serviceHandler = new ServiceHandler(registryAddrss);
+        return serviceHandler.refer(referenceClass, referenceClass.getName());
     }
 
 
